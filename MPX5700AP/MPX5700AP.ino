@@ -9,6 +9,12 @@ int offset = 410; // zero pressure adjust
 int fullScale = 9630; // max pressure (span) adjust
 float pressure_0; // final pressure
 float pressure_1; // final pressure
+//
+unsigned long time;
+unsigned long time2;
+unsigned long time3;
+unsigned long time4;
+unsigned long time_old;
  
 void setup() {
   Serial.begin(9600);
@@ -23,18 +29,18 @@ void loop() {
   }
   pressure_0 = (rawValue_0 - offset) * 700.0 / (fullScale - offset); // pressure conversion
   pressure_1 = (rawValue_1 - offset) * 700.0 / (fullScale - offset); // pressure conversion
-  
-  //Serial.print("Raw A/D is  ");
-  //Serial.print(rawValue_0);
-  //Serial.print("   Pressure is  ");
+
+  Serial.println("");
   Serial.print(pressure_0, 1); // one decimal places
-  //Serial.print("  kPa");
   Serial.print("\t");
-  //Serial.print("Raw A/D is  ");
-  //Serial.print(rawValue_1);
-  //Serial.print("   Pressure is  ");
   Serial.print(pressure_1, 1); // one decimal places
-  //Serial.print("  kPa");
   Serial.print("\n");
-  delay(100);
+
+  //サンプリング時間の調整
+  time = millis();
+  time3 = time - time_old - time4; // 前回の遅れ時間
+  time_old = time;                 // 次回計算用として、今回までの演算時間を格納
+  time4 = 100 - time3;             // 今回のdelay時間を決定
+  //Serial.println(time);
+  delay(time4);
 }

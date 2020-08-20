@@ -48,6 +48,7 @@ void setup() {
   Serial.begin(115200);
   Sensor_setup();
 
+  // 初期角度の取得
   /* Get a new sensor event */
   imu::Quaternion quat = bno.getQuat();
   double ysqr = quat.y() * quat.y();
@@ -91,25 +92,14 @@ void loop()
   double t4 = +1.0 - 2.0 * (ysqr + quat.z() * quat.z());
   double yaw = atan2(t3, t4) * 180 / PI;
 
+  // 初期角度で0合わせ
   //  roll -= roll_bias;
   pitch -= pitch_bias;
   yaw -= yaw_bias;
-
-  // //If you wanna adjust from -180 to 180, uncomment the following code
-  //
-  //  while (abs(roll) > 180) {
-  //    roll -= sign(roll) * 360;
-  //  }
-  //
-  //  while (abs(pitch) > 180) {
-  //    pitch -= sign(pitch) * 360;
-  //  }
-  //
-  //  while (abs(yaw) > 180) {
-  //    yaw -= sign(yaw) * 360;
-  //  }
+  
 
   // 姿勢の初期化：Unity側から"0"を受け取ると，その姿勢を原点とした角度に設定
+  //                       "1"を受け取ると，pitchのみ初期化
    if ( Serial.available() ) {
     char mode = Serial.read();
     switch (mode) {
@@ -117,22 +107,23 @@ void loop()
         initial_pitch = pitch;
         initial_yaw = yaw;
         break;
+      case '1' :
+        initial_pitch = pitch;
+        break;  
       default: 
         break;
     }
   }
   pitch = pitch - initial_pitch;
   yaw = yaw - initial_yaw;
+
+
   //角度補正（１８０度地点の調整）
-  if(pitch > 180){
-    pitch = pitch - 360;
-  }else if(pitch < -180){
-    pitch = pitch + 360;
+  while (abs(pitch) > 180) {
+    pitch -= sign(pitch) * 360;
   }
-  if(yaw > 180){
-    yaw = yaw - 360;
-  }else if(yaw < -180){
-    yaw = yaw + 360;
+  while (abs(yaw) > 180) {
+    yaw -= sign(yaw) * 360;
   }
 
   /* New line for the next sample */
@@ -145,5 +136,5 @@ void loop()
   Serial.print("\n");
 
   /* Wait the specified delay before requesting next data */
-  delay(BNO055_SAMPLERATE_DELAY_MS);
+  //delay(BNO055_SAMPLERATE_DELAY_MS);
 }
